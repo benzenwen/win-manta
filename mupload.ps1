@@ -52,13 +52,12 @@ Param (
 	separators.
  
 	Using -Force does NOT delete existing Manta objects if there is 
-	a local file to overwrite it.
+	not a local file to overwrite it.
  
 .PARAMETER
-	-DoLinks | l
-	Upload files that end in '.lnk', which are Windows soft
-	links, these have no similar implementation on Manta.
-	By default these are skipped.
+	-NoLinks | nl
+	Ignore files that end in '.lnk', which are typically Windows soft
+	links.
  
 	-Verbose | v
 	Provide more output.
@@ -70,7 +69,7 @@ Param (
 	tested with: http://slproweb.com/download/Win64OpenSSL-1_0_1e.exe
 
  
-	-Force | q
+	-Force | f
 	Ignore existing Manta base directory checks.  Note that
 	existing objects will be overwritten, but non-overlapping
 	objects will still remain.
@@ -133,34 +132,22 @@ Param (
 #>
  
  
-function Manta-Exists ($mydir) {
-	 $mycmd = 'mls'
-	 $myexist = & $mycmd $mydir
-	 
-	 ## This is fragile
-	 if ($myexist -match '.*ResourceNotFoundError.*') {
-	    $False 
-	 } else {
-	    $True
-	 }
-}
- 
 ## First, see if Manta node command mls installed, callable
 $mlscmd = "mls"
 if (!(Get-Command $mlscmd -errorAction SilentlyContinue)) {
-  "Node.js Manta command mls is not found" | echo
-  "Check your Node.js,  npm manta installations" | echo
-  exit 1
+ "Node.js Manta command mls is not found" | echo
+ "Check your Node.js,  npm manta installations" | echo
+ exit 1
 } 
 
 ## Second, see if mls works with supplied account information
-$myMantaOn = & $mlscmd
-if ($myMantaOn -match '.*ResourceNotFoundError.*') {
-  "Manta not responding, check :" | echo
-  "Environment Variables have proper values: MANTA_USR, MANTA_URL, MANTA_KEY_ID" | echo
-  "SSH keys: id_rsa and id_rsa.pub downloaded from Joyent, placed in in $HOME/.ssh" | echo
-  exit 2
-}
+## $myMantaOn = & $mlscmd
+## if ($myMantaOn -match '.*ResourceNotFoundError.*') {
+##  "Manta not responding, check :" | echo
+##  "Environment Variables have proper values: MANTA_USR, MANTA_URL, MANTA_KEY_ID" | echo
+##  "SSH keys: id_rsa and id_rsa.pub downloaded from Joyent, placed in in $HOME/.ssh" | echo
+##  exit 2
+## }
   
 ## Many other types of errors have not been checked here...
 ## all this suggests is that the system can run mls
@@ -186,23 +173,16 @@ if (!( $args[0] -match '.*/$')) {
  
 if ($Verbose) { "Basedir: " + $base | echo }
  
-if (! $Force) {
-  if (Manta-Exists($base)) {
-      "Manta directory " + $base + " not found OR already exists.  Aborting.  Use -Force to override." | echo
-      exit 4
-  } 
+$mcmd = "mmkdir"
+$mopts = "-p", $base
+if ($Verbose) { "Creating Manta base directory: " + $base | echo }
+if ($DryRun) {
+    "Dry Run: " + $mcmd + " " + $mopts | echo 
 } else {
-    $mcmd = "mmkdir"
-    $mopts = "-p", $base
-    if ($Verbose) { "Creating Manta base directory: " + $base | echo }
-    if ($DryRun) {
-        "Dry Run: " + $mcmd + " " + $mopts | echo 
-    } else {
-      & $mcmd $mopts
-    }
-    $mcmd = ""
-    $mopts = ""
+  & $mcmd $mopts
 }
+$mcmd = ""
+$mopts = ""
 
  
  
@@ -220,7 +200,7 @@ foreach ($i in $input) {
 	   $mcmd = "mmkdir"
 	   $mopts = "-p", $mdir 
 	} else {
-	   ## Is this a soft link - default is to skip.
+	   ## Is this a soft link
 	   if (($i.name -match '.*.lnk$') -and ($NoLinks)) {
 	      ## do nothing
 	      $mcmd = ""
