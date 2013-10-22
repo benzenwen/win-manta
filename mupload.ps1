@@ -63,7 +63,7 @@ Param (
 	-Verbose | v
 	Provide more output.
  
-    -MD5 | m
+	-MD5 | m
 	Uses a local install of openssl to compute the md5 digest and
 	use that to force server side validation that the file uploaded
 	is identical. openssl must be installed and found in the PATH
