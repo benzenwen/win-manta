@@ -255,7 +255,15 @@ foreach ($i in $input) {
 	if ($DryRun) { 
 	   "Dry Run: " + $mcmd + " " + $mhdr + " " + $md5HDR + " " + $mopts | echo 
 	} else { 
-	   if ($Verbose) { $mcmd + $mhdr + $md5HDR + $mopts | echo }
+	   if ($Verbose) { 
+	       $mcmd + $mhdr + $md5HDR + $mopts | echo 
+	   } else {
+	       if ($mcmd -match "mmkdir") {
+	       	   # mmkdir is silent, provide feedback
+		   $mcmd + $mhdr + $md5HDR + $mopts | echo 
+	       }
+	   }
+	       	   
 	   & $mcmd $mhdr $md5DHR $mopts
 	}
  
