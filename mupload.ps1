@@ -8,7 +8,7 @@ Param (
        [alias("m")]
        [switch]
        $MD5,
-	   [alias("f")]
+       [alias("f")]
        [switch]
        $Force,
        [alias("d")]
@@ -48,7 +48,7 @@ Param (
 	/benwen20131018/stor/windowsbak001 as the Manta base directory, 
 	all files and paths relative to c:\Users\Administrator will 
 	be uploaded relative to /benwen20131018/stor/windowsbak001
-    with the necessary conversion of Windows \ to Unix / path
+	with the necessary conversion of Windows \ to Unix / path
 	separators.
  
 	Using -Force does NOT delete existing Manta objects if there is 
@@ -110,7 +110,7 @@ Param (
 	8) Run this command to test that Manta is working: "mls".
 	If you don't get an error message you're good to go.  Visit:
 	http://apidocs.joyent.com/manta for more information.  
-    9) To make -m MD5 work, install OpenSSL
+	9) To make -m MD5 work, install OpenSSL
 	http://slproweb.com/download/Win64OpenSSL-1_0_1e.exe and
 	add the directory for openssl.exe to your PATH
  
@@ -124,8 +124,8 @@ Param (
 	      and ContentMD5MismatchError - set up retry...
 	
 	TODO: Check for object being overwritten better
-	      [Compare|c] compare only option to check stored value MD5
-		  with directory tree and report differences (missing files, bad MD5)
+	[Compare|c] compare only option to check stored value MD5
+	with directory tree and report differences (missing files, bad MD5)
  
 .LINK
 	http://apidocs.joyent.com/manta
@@ -187,21 +187,21 @@ if (!( $args[0] -match '.*/$')) {
 if ($Verbose) { "Basedir: " + $base | echo }
  
 if (! $Force) {
-	if (Manta-Exists($base)) {
+  if (Manta-Exists($base)) {
       "Manta directory " + $base + " not found OR already exists.  Aborting.  Use -Force to override." | echo
       exit 4
-	} 
+  } 
 } else {
-	  $mcmd = "mmkdir"
-      $mopts = "-p", $base
-	  if ($Verbose) { "Creating Manta base directory: " + $base | echo }
-	  if ($DryRun) {
-		"Dry Run: " + $mcmd + " " + $mopts | echo 
-	  } else {
-	    & $mcmd $mopts
-	  }
-	  $mcmd = ""
-	  $mopts = ""
+    $mcmd = "mmkdir"
+    $mopts = "-p", $base
+    if ($Verbose) { "Creating Manta base directory: " + $base | echo }
+    if ($DryRun) {
+        "Dry Run: " + $mcmd + " " + $mopts | echo 
+    } else {
+      & $mcmd $mopts
+    }
+    $mcmd = ""
+    $mopts = ""
 }
 
  
@@ -237,19 +237,19 @@ foreach ($i in $input) {
 			if ($Verbose) {$i.fullname + " Larger than 5Gb, using header: " + $mhdr | echo}
 		  } else {
 			$mhdr = " "
-	        $mcmd = "mput"
-	        $mopts = "-f", $i.fullname, $mdir
+		        $mcmd = "mput"
+		        $mopts = "-f", $i.fullname, $mdir
 		  }
 		  if ($MD5) {
-		     $digest = "dgst -md5 -binary -out digest.bin"
-			 $encrypt = "enc -base64 -in digest.bin"
-			 $fullname = $i.fullname
-			 $quote = '"'
-			 $opensslargs = $openssl + " " + $digest + " " + $quote + $fullname + $quote
-			 if ($DryRun) {
+			$digest = "dgst -md5 -binary -out digest.bin"
+			$encrypt = "enc -base64 -in digest.bin"
+			$fullname = $i.fullname
+			$quote = '"'
+			$opensslargs = $openssl + " " + $digest + " " + $quote + $fullname + $quote
+			if ($DryRun) {
 			   "Dry Run: " + "cmd /c" + " " + $opensslargs | echo
-			 }
-			 if ($Verbose) { echo $opensslargs }
+			}
+			if ($Verbose) { echo $opensslargs }
 			 ## PowerScript escape syntax - problems with 
 			 ## spaces inside quotes inside file args for openssl
 			 ## http://connect.microsoft.com/PowerShell/feedback/details/376207
