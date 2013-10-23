@@ -131,6 +131,23 @@ Param (
  
 #>
  
+
+
+function Manta-Exists ($mydir) {
+         $mycmd = 'mls'
+         $invokeme = "& $mycmd $mydir 2>&1"
+         $console_out = invoke-expression $invokeme
+         ## "Console: " + $console_out | echo
+         $returnme = [string]::join("`r`n",$console_out)
+         ## "Return: " + $returnme | echo
+         if ($returnme -match '.*Error.*') {
+            $False
+         } else {
+            $True
+         }
+}
+
+
  
 ## First, see if Manta node command mls installed, callable
 $mlscmd = "mls"
@@ -141,17 +158,15 @@ if (!(Get-Command $mlscmd -errorAction SilentlyContinue)) {
 } 
 
 ## Second, see if mls works with supplied account information
-## $myMantaOn = & $mlscmd
-## if ($myMantaOn -match '.*ResourceNotFoundError.*') {
-##  "Manta not responding, check :" | echo
-##  "Environment Variables have proper values: MANTA_USR, MANTA_URL, MANTA_KEY_ID" | echo
-##  "SSH keys: id_rsa and id_rsa.pub downloaded from Joyent, placed in in $HOME/.ssh" | echo
-##  exit 2
-## }
-  
-## Many other types of errors have not been checked here...
-## all this suggests is that the system can run mls
-if ($Verbose) { "Manta connection seems ok." | echo }
+$mydir=""
+if (Manta-Exists($mydir)) {
+  "Manta connection seems ok." | echo
+} else {
+  "Manta not responding, check network with mls and check that your Manta" | echo
+  "environment variables have proper values: MANTA_USR, MANTA_URL, MANTA_KEY_ID" | echo
+  "SSH keys in place: id_rsa and id_rsa.pub downloaded from Joyent, placed in in $HOME/.ssh" | echo
+  exit 2
+}
 
 
 ## Third if MD5 - check to see if openssl is in the PATH
@@ -172,19 +187,25 @@ if (!( $args[0] -match '.*/$')) {
 }
  
 if ($Verbose) { "Basedir: " + $base | echo }
- 
-$mcmd = "mmkdir"
-$mopts = "-p", $base
-if ($Verbose) { "Creating Manta base directory: " + $base | echo }
-if ($DryRun) {
-    "Dry Run: " + $mcmd + " " + $mopts | echo 
-} else {
-  & $mcmd $mopts
-}
-$mcmd = ""
-$mopts = ""
 
- 
+if (! $Force) {
+        if (Manta-Exists($base)) {
+      		"Manta directory " + $base + " not found OR already exists.  Aborting.  Use -Force to override." | echo
+      		exit 4
+        }
+} else {
+          $mcmd = "mmkdir"
+          $mopts = "-p", $base
+          if ($Verbose) { "Creating Manta base directory: " + $base | echo }
+          if ($DryRun) {
+                "Dry Run: " + $mcmd + " " + $mopts | echo
+          } else {
+            & $mcmd $mopts
+          }
+          $mcmd = ""
+          $mopts = ""
+}
+
  
 foreach ($i in $input) {
 	if ($Verbose) {"Processing: " +  $i.name + " is a container: " + $i.PSIsContainer | echo}
