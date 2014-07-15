@@ -66,7 +66,7 @@ Param (
 	Uses a local install of openssl to compute the md5 digest and
 	use that to force server side validation that the file uploaded
 	is identical. openssl must be installed and found in the PATH
-	tested with: http://slproweb.com/download/Win64OpenSSL-1_0_1e.exe
+	tested with: http://slproweb.com/download/Win64OpenSSL-1_0_1h.exe
 
  
 	-Force | f
